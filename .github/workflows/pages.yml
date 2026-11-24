@@ -29,6 +29,8 @@ jobs:
           tar -xzf site.tar.gz -C _site
           test -f _site/index.html
           test -f _site/JINQIU_Portfolio_2026.pdf
+      - name: Make loading independent of slow image requests
+        run: cp deployment/app-v61.mjs _site/app-v61.mjs
       - uses: actions/upload-pages-artifact@v4
         with:
           path: _site
