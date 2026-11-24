@@ -1,0 +1,43 @@
+name: Publish portfolio site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - name: Download exact website snapshot
+        run: |
+          curl --fail --location --retry 3 --retry-delay 5 --output site.tar.gz \
+            https://github.com/jinqiuhuang0-pixel/jinqiuhuang/releases/download/portfolio-assets-2026-11-24/jinqiu-portfolio-site-2026-11-24.tar.gz
+          echo 'a04213cb38bdde12286a91e3cd9f5df5b4249ef095696f6fe2e8463e4af6face  site.tar.gz' | sha256sum --check
+          mkdir _site
+          tar -xzf site.tar.gz -C _site
+          test -f _site/index.html
+          test -f _site/JINQIU_Portfolio_2026.pdf
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
